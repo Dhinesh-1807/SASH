@@ -116,7 +116,7 @@ export const RemindersPage: React.FC = () => {
     const rawUsername =
       profile?.full_name ||
       user?.email?.split('@')[0] ||
-      'Dhinesh';
+      'User';
     const sanitizedUsername = rawUsername.trim().replace(/\s+/g, '_');
     const dateStr = new Date().toISOString().split('T')[0];
     const fileName = `${sanitizedUsername}_SASH_${dateStr}.csv`;

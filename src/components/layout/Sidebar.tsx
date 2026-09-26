@@ -119,13 +119,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate, onOpe
             className="flex items-center gap-3 cursor-pointer group flex-1 min-w-0"
           >
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 flex items-center justify-center font-bold text-white text-xs shadow-md shrink-0">
-              {profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : 'D'}
+              {(profile?.full_name || user?.email || 'U').charAt(0).toUpperCase()}
             </div>
             <div className="truncate">
               <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-cyan-300 truncate">
-                {profile?.full_name || 'Dhinesh'}
+                {profile?.full_name || (user?.email ? user.email.split('@')[0] : 'User')}
               </p>
-              <p className="text-[11px] text-slate-500 truncate">{profile?.email || user?.email || 'user@dsfocus.com'}</p>
+              <p className="text-[11px] text-slate-500 truncate">{profile?.email || user?.email || ''}</p>
             </div>
           </div>
 

@@ -37,14 +37,37 @@ function saveLocalStore(userId: string, data: LocalStore) {
 }
 
 // ==========================================
-// PROFILES
+// PROFILES & HELPERS
 // ==========================================
+export function extractNameFromEmail(email?: string): string {
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    return 'User';
+  }
+  const localPart = email.split('@')[0] || '';
+  const cleaned = localPart
+    .replace(/[._-]+/g, ' ')
+    .replace(/\d+/g, '')
+    .trim();
+  if (!cleaned) {
+    const rawLocal = localPart.trim();
+    return rawLocal ? rawLocal.charAt(0).toUpperCase() + rawLocal.slice(1) : 'User';
+  }
+  return cleaned
+    .split(' ')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
 export async function fetchProfile(
   userId: string,
   defaultEmail = '',
   defaultName = ''
 ): Promise<UserProfile> {
   const supabase = getSupabase();
+  const fallbackEmail = defaultEmail.trim();
+  const fallbackName = defaultName.trim() || extractNameFromEmail(fallbackEmail);
+
   if (supabase) {
     try {
       const { data, error } = await supabase
@@ -54,13 +77,25 @@ export async function fetchProfile(
         .maybeSingle();
 
       if (!error && data) {
+        const finalName = data.full_name?.trim() || fallbackName;
+        const finalEmail = data.email?.trim() || fallbackEmail;
+
+        // Auto-heal empty full_name in Supabase if we have a better fallback name
+        if (!data.full_name?.trim() && finalName && finalName !== 'User') {
+          supabase
+            .from('profiles')
+            .update({ full_name: finalName })
+            .eq('id', userId)
+            .then();
+        }
+
         return {
           ...data,
-          email: data.email || defaultEmail || 'dhinesh@sash.com',
-          full_name: data.full_name || defaultName || 'Dhinesh',
-          gender: data.gender ?? 'Male',
-          age: data.age ?? 22,
-          profession: data.profession ?? 'Software Developer',
+          email: finalEmail,
+          full_name: finalName,
+          gender: data.gender ?? 'Prefer not to say',
+          age: data.age ?? 25,
+          profession: data.profession ?? 'Professional',
         } as UserProfile;
       }
 
@@ -68,11 +103,11 @@ export async function fetchProfile(
       if (!error && !data) {
         const toCreate: Record<string, unknown> = {
           id: userId,
-          email: defaultEmail,
-          full_name: defaultName || 'Dhinesh',
-          gender: 'Male',
-          age: 22,
-          profession: 'Software Developer',
+          email: fallbackEmail,
+          full_name: fallbackName,
+          gender: 'Prefer not to say',
+          age: 25,
+          profession: 'Professional',
           daily_goal_target: 6,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata',
           week_starts_on: 'Monday',
@@ -108,9 +143,11 @@ export async function fetchProfile(
           const store = loadLocalStore(userId);
           store.profile = {
             ...createdProf,
-            gender: 'Male',
-            age: 22,
-            profession: 'Software Developer',
+            full_name: createdProf.full_name || fallbackName,
+            email: createdProf.email || fallbackEmail,
+            gender: createdProf.gender ?? 'Prefer not to say',
+            age: createdProf.age ?? 25,
+            profession: createdProf.profession ?? 'Professional',
           } as UserProfile;
           saveLocalStore(userId, store);
           return store.profile;
@@ -124,17 +161,20 @@ export async function fetchProfile(
   // Fallback to local
   const store = loadLocalStore(userId);
   if (store.profile) {
+    if (!store.profile.full_name?.trim()) {
+      store.profile.full_name = fallbackName;
+    }
     return store.profile;
   }
 
   const newProfile: UserProfile = {
     id: userId,
-    full_name: defaultName || 'Dhinesh',
-    email: defaultEmail || 'dhinesh@sash.com',
+    full_name: fallbackName,
+    email: fallbackEmail,
     phone: '',
-    gender: 'Male',
-    age: 22,
-    profession: 'Software Developer',
+    gender: 'Prefer not to say',
+    age: 25,
+    profession: 'Professional',
     daily_goal_target: 6,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata',
     week_starts_on: 'Monday',

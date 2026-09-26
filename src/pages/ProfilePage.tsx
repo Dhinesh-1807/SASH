@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
 import { Button } from '../components/common/Button';
+import { extractNameFromEmail } from '../lib/storage';
 import {
   User,
   Mail,
@@ -22,25 +23,26 @@ export const ProfilePage: React.FC = () => {
   const { user, profile, updateUserProfile } = useAuth();
   const { streak, activities } = useData();
 
-  const [fullName, setFullName] = useState(profile?.full_name || 'Dhinesh');
-  const [gender, setGender] = useState(profile?.gender || 'Male');
-  const [age, setAge] = useState<number | string>(profile?.age ?? 22);
-  const [profession, setProfession] = useState(profile?.profession || 'Software Developer');
+  const fallbackName = profile?.full_name || extractNameFromEmail(user?.email);
+  const [fullName, setFullName] = useState(fallbackName);
+  const [gender, setGender] = useState(profile?.gender || 'Prefer not to say');
+  const [age, setAge] = useState<number | string>(profile?.age ?? 25);
+  const [profession, setProfession] = useState(profile?.profession || 'Professional');
   const [phone, setPhone] = useState(profile?.phone || '');
   const [dailyGoalTarget, setDailyGoalTarget] = useState(profile?.daily_goal_target || 6);
   const [isSaving, setIsSaving] = useState(false);
   const [showSavedFeedback, setShowSavedFeedback] = useState(false);
 
   useEffect(() => {
-    if (profile) {
-      setFullName(profile.full_name || 'Dhinesh');
-      setGender(profile.gender || 'Male');
-      setAge(profile.age ?? 22);
-      setProfession(profile.profession || 'Software Developer');
-      setPhone(profile.phone || '');
-      setDailyGoalTarget(profile.daily_goal_target || 6);
+    if (profile || user) {
+      setFullName(profile?.full_name || extractNameFromEmail(user?.email));
+      setGender(profile?.gender || 'Prefer not to say');
+      setAge(profile?.age ?? 25);
+      setProfession(profile?.profession || 'Professional');
+      setPhone(profile?.phone || '');
+      setDailyGoalTarget(profile?.daily_goal_target || 6);
     }
-  }, [profile]);
+  }, [profile, user]);
 
   const completedActivities = activities.filter((a) => a.status === 'Completed').length;
   const totalFocusMins = activities.reduce((acc, a) => acc + (a.duration_minutes || 0), 0);
@@ -93,13 +95,13 @@ export const ProfilePage: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
           {/* Avatar Icon */}
           <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-cyan-500 flex items-center justify-center text-white text-3xl font-black shadow-md shadow-blue-500/25 shrink-0">
-            {fullName ? fullName.charAt(0).toUpperCase() : 'D'}
+            {(fullName || extractNameFromEmail(user?.email) || 'U').charAt(0).toUpperCase()}
           </div>
 
           <div className="flex-1 text-center sm:text-left space-y-2">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                {fullName || 'Dhinesh'}
+                {fullName || extractNameFromEmail(user?.email)}
               </h3>
               {profession && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-cyan-500/15 dark:text-cyan-300 border border-blue-200 dark:border-cyan-500/30 text-xs font-bold shadow-2xs self-center sm:self-auto">
@@ -113,7 +115,7 @@ export const ProfilePage: React.FC = () => {
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-0.5">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold border border-slate-200/80 dark:border-slate-700 shadow-2xs">
                 <Users className="w-3 h-3 text-slate-400" />
-                <span>{gender || 'Male'}</span>
+                <span>{gender || 'Prefer not to say'}</span>
               </span>
 
               {age && (
@@ -125,7 +127,7 @@ export const ProfilePage: React.FC = () => {
 
               <span className="text-xs text-blue-600 dark:text-cyan-400 font-mono font-semibold flex items-center gap-1.5 pl-1">
                 <Mail className="w-3.5 h-3.5" />
-                <span>{profile?.email || user?.email || 'dhineshn49@gmail.com'}</span>
+                <span>{profile?.email || user?.email || ''}</span>
               </span>
             </div>
 

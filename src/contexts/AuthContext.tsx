@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { UserProfile } from '../types';
 import { getSupabase } from '../lib/supabase';
-import { fetchProfile, updateProfile } from '../lib/storage';
+import { fetchProfile, updateProfile, extractNameFromEmail } from '../lib/storage';
 
 export interface AuthUser {
   id: string;
@@ -184,6 +184,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     fullName = ''
   ): Promise<{ success: boolean; error?: string; requireVerification?: boolean }> => {
     const cleanEmail = email.trim().toLowerCase();
+    const effectiveName = fullName.trim() || extractNameFromEmail(cleanEmail);
     const supabase = getSupabase();
 
     if (supabase) {
@@ -193,12 +194,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           password,
           options: {
             data: {
-              full_name: fullName.trim(),
+              full_name: effectiveName,
             },
+            emailRedirectTo: `${window.location.origin}/`,
           },
         });
 
         if (error) {
+          if (error.message?.toLowerCase().includes('rate limit')) {
+            return {
+              success: false,
+              error: 'Supabase email rate limit exceeded (3 emails/hr). Please disable "Confirm email" in Supabase Dashboard (Authentication > Providers > Email) for instant zero-friction signups, or try again in a few minutes.'
+            };
+          }
           return { success: false, error: error.message };
         }
 
@@ -213,7 +221,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               localStorage.setItem(LOCAL_AUTH_SESSION_KEY, JSON.stringify(authUser));
             } catch {}
 
-            const prof = await fetchProfile(authUser.id, authUser.email, fullName.trim());
+            const prof = await fetchProfile(authUser.id, authUser.email, effectiveName);
             setProfile(prof);
             return { success: true };
           } else {
@@ -237,7 +245,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // 1-Click Instant Demo Login
   const loginWithDemo = async (
-    demoEmail = 'demo@dsfocus.com'
+    demoEmail = 'demo@sash.com'
   ): Promise<{ success: boolean; error?: string }> => {
     const cleanEmail = demoEmail.trim().toLowerCase();
     const cleanId = cleanEmail.replace(/[^a-zA-Z0-9]/g, '').slice(-12).padStart(12, '0');
@@ -256,7 +264,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const prof = await fetchProfile(
       demoUserId,
       cleanEmail,
-      cleanEmail.includes('demo') ? 'Dhinesh' : 'Dhinesh'
+      cleanEmail.includes('demo') ? 'Demo User' : extractNameFromEmail(cleanEmail)
     );
     setProfile(prof);
 
@@ -299,6 +307,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         if (error) {
+          if (error.message?.toLowerCase().includes('rate limit')) {
+            return {
+              success: false,
+              error: 'Supabase email rate limit reached (3 emails/hr). Please wait a few minutes or configure custom SMTP in Supabase Settings.',
+            };
+          }
           return { success: false, error: error.message };
         }
         return { success: true };

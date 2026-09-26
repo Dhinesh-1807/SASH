@@ -74,13 +74,7 @@ export const LoginForm: React.FC<LoginFormProps> = () => {
             `Password reset link has been sent to ${email.trim()}. Please check your Gmail Inbox and Spam folder to change your password.`
           );
         } else {
-          if (result.error?.toLowerCase().includes('rate limit')) {
-            setErrorMessage(
-              'A reset email was recently sent to this address. Please check your Gmail Inbox and Spam folder, or wait a minute before requesting another.'
-            );
-          } else {
-            setErrorMessage(result.error || 'Failed to send password reset email. Please try again.');
-          }
+          setErrorMessage(result.error || 'Failed to send password reset email. Please try again.');
         }
       } catch {
         setErrorMessage('An unexpected error occurred while requesting password reset.');
@@ -364,7 +358,7 @@ export const LoginForm: React.FC<LoginFormProps> = () => {
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="e.g. Dhinesh"
+                placeholder="e.g. Alex Morgan, Karthik"
                 className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-blue-200 dark:border-slate-700 focus:border-blue-600 dark:focus:border-cyan-400 rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-cyan-400/20 transition-all shadow-xs"
               />
             </div>
