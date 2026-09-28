@@ -117,4 +117,17 @@
   .border-glow {
     border-image: linear-gradient(to right, #1D4ED8, #0284C7) 1;
   }
+
+  /* Mobile Safe Area & Carousel Utilities */
+  .safe-area-pb {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0.75rem));
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

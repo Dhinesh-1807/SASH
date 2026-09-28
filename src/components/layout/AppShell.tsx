@@ -41,10 +41,11 @@ export const AppShell: React.FC<AppShellProps> = ({ currentPage, onNavigate, chi
       />
 
       {/* Main Content Viewport */}
-      <div className="flex-1 flex flex-col min-w-0 pb-20 lg:pb-6">
+      <div className="flex-1 flex flex-col min-w-0 pb-24 sm:pb-28 lg:pb-8">
         <TopHeader
           onOpenTimer={() => setIsTimerOpen(true)}
           onOpenSupabaseConfig={() => setIsSupabaseConfigOpen(true)}
+          onNavigate={onNavigate}
         />
 
         {/* Missing Tables Notice Banner */}

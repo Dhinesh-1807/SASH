@@ -155,7 +155,7 @@ export const AnalyticsPage: React.FC = () => {
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center p-1 bg-blue-100/70 dark:bg-slate-900 border border-blue-200/80 dark:border-slate-800 rounded-2xl self-start sm:self-center">
+        <div className="flex items-center p-1 bg-blue-100/70 dark:bg-slate-900 border border-blue-200/80 dark:border-slate-800 rounded-2xl w-full sm:w-auto overflow-x-auto no-scrollbar">
           {[
             { id: 'today', label: 'Today' },
             { id: '7days', label: '7 Days' },
@@ -165,7 +165,7 @@ export const AnalyticsPage: React.FC = () => {
             <button
               key={t.id}
               onClick={() => setPeriod(t.id as AnalyticsPeriod)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+              className={`flex-1 sm:flex-initial shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all text-center ${
                 period === t.id
                   ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white shadow-md'
                   : 'text-slate-600 dark:text-slate-400 hover:text-blue-900 dark:hover:text-white'
@@ -178,7 +178,7 @@ export const AnalyticsPage: React.FC = () => {
       </div>
 
       {/* TOP KPI CARDS */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         <KpiCard
           title="Today's Completion"
           value={`${todayStats.completionPercentage}%`}

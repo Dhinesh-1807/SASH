@@ -34,23 +34,23 @@ export const KpiCard: React.FC<KpiCardProps> = ({
   }[badgeColor];
 
   return (
-    <div className="group relative overflow-hidden rounded-2xl bg-white/90 dark:bg-[#0b1220]/90 backdrop-blur-md border border-blue-100/90 dark:border-slate-800/90 p-4 sm:p-5 shadow-xs hover:shadow-md hover:border-blue-300/80 dark:hover:border-cyan-500/40 transition-all duration-300 flex flex-col justify-between">
-      <div className="flex items-start justify-between gap-2">
-        <div className="space-y-1">
-          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+    <div className="group relative overflow-hidden rounded-2xl bg-white/90 dark:bg-[#0b1220]/90 backdrop-blur-md border border-blue-100/90 dark:border-slate-800/90 p-3 sm:p-5 shadow-xs hover:shadow-md hover:border-blue-300/80 dark:hover:border-cyan-500/40 transition-all duration-300 flex flex-col justify-between">
+      <div className="flex items-start justify-between gap-1.5 sm:gap-2">
+        <div className="space-y-0.5 sm:space-y-1 min-w-0">
+          <span className="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block truncate">
             {title}
           </span>
-          <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+          <div className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight truncate">
             {value}
           </div>
         </div>
 
-        <div className={`p-2.5 rounded-xl border shadow-xs transition-transform duration-300 group-hover:scale-105 shrink-0 ${iconContainerClasses}`}>
+        <div className={`p-2 sm:p-2.5 rounded-xl border shadow-xs transition-transform duration-300 group-hover:scale-105 shrink-0 ${iconContainerClasses}`}>
           {icon}
         </div>
       </div>
 
-      <div className="mt-4 space-y-2">
+      <div className="mt-3 sm:mt-4 space-y-1.5 sm:space-y-2">
         {typeof progress === 'number' && (
           <div className="w-full bg-slate-100 dark:bg-slate-800/80 rounded-full h-1.5 overflow-hidden">
             <div
@@ -60,16 +60,16 @@ export const KpiCard: React.FC<KpiCardProps> = ({
           </div>
         )}
 
-        <div className="flex items-center justify-between text-xs gap-2 pt-0.5">
+        <div className="flex items-center justify-between text-xs gap-1 sm:gap-2 pt-0.5 min-w-0">
           {subtitle ? (
-            <span className="text-slate-500 dark:text-slate-400 text-[11px] font-medium truncate">
+            <span className="text-slate-500 dark:text-slate-400 text-[10px] sm:text-[11px] font-medium truncate">
               {subtitle}
             </span>
           ) : (
             <span />
           )}
           {badge && (
-            <span className={`px-2 py-0.5 rounded-full font-bold border text-[10px] shrink-0 shadow-2xs ${badgeClasses}`}>
+            <span className={`px-1.5 sm:px-2 py-0.5 rounded-full font-bold border text-[9px] sm:text-[10px] shrink-0 shadow-2xs whitespace-nowrap ${badgeClasses}`}>
               {badge}
             </span>
           )}

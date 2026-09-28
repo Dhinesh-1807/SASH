@@ -54,7 +54,7 @@ const MainRouter: React.FC = () => {
       {currentPage === 'manage-schedule' && <ManageSchedulePage />}
       {currentPage === 'analytics' && <AnalyticsPage />}
       {currentPage === 'history' && <HistoryPage />}
-      {currentPage === 'profile' && <ProfilePage />}
+      {currentPage === 'profile' && <ProfilePage onNavigate={setCurrentPage} />}
       {currentPage === 'settings' && <SettingsPage />}
     </AppShell>
   );

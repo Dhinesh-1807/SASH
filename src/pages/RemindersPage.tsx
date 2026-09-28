@@ -36,6 +36,7 @@ export const RemindersPage: React.FC = () => {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingReminder, setEditingReminder] = useState<ReminderItem | null>(null);
   const [modalDefaultDate, setModalDefaultDate] = useState<string>('');
+  const [mobileView, setMobileView] = useState<'list' | 'calendar'>('list');
 
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
 
@@ -167,9 +168,9 @@ export const RemindersPage: React.FC = () => {
       </div>
 
       {/* Top KPI Cards Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {/* Total Reminders */}
-        <div className="rounded-2xl bg-white/95 dark:bg-[#0b1220]/95 backdrop-blur-md border border-blue-100/90 dark:border-slate-800/90 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
+        <div className="rounded-2xl bg-white/95 dark:bg-[#0b1220]/95 backdrop-blur-md border border-blue-100/90 dark:border-slate-800/90 p-3.5 sm:p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
@@ -179,7 +180,7 @@ export const RemindersPage: React.FC = () => {
                 {stats.total}
               </div>
             </div>
-            <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30">
               <CalendarCheck className="w-5 h-5" />
             </div>
           </div>
@@ -192,7 +193,7 @@ export const RemindersPage: React.FC = () => {
         </div>
 
         {/* Due Today */}
-        <div className="rounded-2xl bg-white/95 dark:bg-[#0b1220]/95 backdrop-blur-md border border-blue-100/90 dark:border-slate-800/90 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
+        <div className="rounded-2xl bg-white/95 dark:bg-[#0b1220]/95 backdrop-blur-md border border-blue-100/90 dark:border-slate-800/90 p-3.5 sm:p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
@@ -202,7 +203,7 @@ export const RemindersPage: React.FC = () => {
                 {stats.dueToday}
               </div>
             </div>
-            <div className="p-2.5 rounded-xl bg-sky-50 text-sky-600 dark:bg-cyan-950/40 dark:text-cyan-400 border border-sky-200 dark:border-cyan-500/30">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-sky-50 text-sky-600 dark:bg-cyan-950/40 dark:text-cyan-400 border border-sky-200 dark:border-cyan-500/30">
               <Clock className="w-5 h-5" />
             </div>
           </div>
@@ -215,7 +216,7 @@ export const RemindersPage: React.FC = () => {
         </div>
 
         {/* High Priority */}
-        <div className="rounded-2xl bg-white/95 dark:bg-[#0b1220]/95 backdrop-blur-md border border-blue-100/90 dark:border-slate-800/90 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
+        <div className="rounded-2xl bg-white/95 dark:bg-[#0b1220]/95 backdrop-blur-md border border-blue-100/90 dark:border-slate-800/90 p-3.5 sm:p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
@@ -225,7 +226,7 @@ export const RemindersPage: React.FC = () => {
                 {stats.highPriority}
               </div>
             </div>
-            <div className="p-2.5 rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50">
               <Flame className="w-5 h-5" />
             </div>
           </div>
@@ -238,7 +239,7 @@ export const RemindersPage: React.FC = () => {
         </div>
 
         {/* Completed Rate */}
-        <div className="rounded-2xl bg-white/95 dark:bg-[#0b1220]/95 backdrop-blur-md border border-blue-100/90 dark:border-slate-800/90 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
+        <div className="rounded-2xl bg-white/95 dark:bg-[#0b1220]/95 backdrop-blur-md border border-blue-100/90 dark:border-slate-800/90 p-3.5 sm:p-5 shadow-xs flex flex-col justify-between">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
@@ -248,7 +249,7 @@ export const RemindersPage: React.FC = () => {
                 {stats.completionRate}%
               </div>
             </div>
-            <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30">
               <CheckCircle2 className="w-5 h-5" />
             </div>
           </div>
@@ -269,10 +270,36 @@ export const RemindersPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile Segmented Toggle between List View and Calendar View */}
+      <div className="lg:hidden flex items-center p-1 rounded-2xl bg-blue-100/70 dark:bg-slate-900 border border-blue-200/80 dark:border-slate-800">
+        <button
+          onClick={() => setMobileView('list')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+            mobileView === 'list'
+              ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-cyan-400 shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+          }`}
+        >
+          <ListFilter className="w-3.5 h-3.5" />
+          <span>Reminders List ({filteredReminders.length})</span>
+        </button>
+        <button
+          onClick={() => setMobileView('calendar')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+            mobileView === 'calendar'
+              ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-cyan-400 shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+          }`}
+        >
+          <CalendarCheck className="w-3.5 h-3.5" />
+          <span>Calendar View</span>
+        </button>
+      </div>
+
       {/* Main Dual Grid: Interactive Calendar (Left) + Reminders Panel (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Interactive Month Calendar (5 cols on lg) */}
-        <div className="lg:col-span-5 space-y-4">
+        <div className={`lg:col-span-5 space-y-4 ${mobileView === 'calendar' ? 'block' : 'hidden lg:block'}`}>
           <RemindersCalendar onQuickAddDate={(dateStr) => handleOpenAdd(dateStr)} />
 
           {/* Quick Date Shortcuts */}
@@ -325,7 +352,7 @@ export const RemindersPage: React.FC = () => {
         </div>
 
         {/* Right Column: Reminders List & Filter Controls (7 cols on lg) */}
-        <div className="lg:col-span-7 space-y-4">
+        <div className={`lg:col-span-7 space-y-4 ${mobileView === 'list' ? 'block' : 'hidden lg:block'}`}>
           {/* Search and Filters Bar */}
           <div className="rounded-2xl bg-white/95 dark:bg-[#0b1220]/95 backdrop-blur-md border border-blue-100/90 dark:border-slate-800/90 p-4 space-y-3 shadow-xs">
             <div className="flex flex-col sm:flex-row gap-2.5">
@@ -361,10 +388,10 @@ export const RemindersPage: React.FC = () => {
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            <div className="flex items-center gap-1.5 pt-1 overflow-x-auto no-scrollbar pb-1">
               <button
                 onClick={() => setActiveTab('ALL')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                className={`shrink-0 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                   activeTab === 'ALL'
                     ? 'bg-blue-600 text-white shadow-2xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-800'
@@ -375,7 +402,7 @@ export const RemindersPage: React.FC = () => {
 
               <button
                 onClick={() => setActiveTab('TODAY')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                className={`shrink-0 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                   activeTab === 'TODAY'
                     ? 'bg-blue-600 text-white shadow-2xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-800'
@@ -386,7 +413,7 @@ export const RemindersPage: React.FC = () => {
 
               <button
                 onClick={() => setActiveTab('HIGH')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                className={`shrink-0 px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
                   activeTab === 'HIGH'
                     ? 'bg-rose-600 text-white shadow-2xs'
                     : 'text-rose-600 hover:text-rose-800 dark:text-rose-400 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-slate-800'
@@ -398,7 +425,7 @@ export const RemindersPage: React.FC = () => {
 
               <button
                 onClick={() => setActiveTab('UPCOMING')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                className={`shrink-0 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                   activeTab === 'UPCOMING'
                     ? 'bg-blue-600 text-white shadow-2xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-800'
@@ -409,7 +436,7 @@ export const RemindersPage: React.FC = () => {
 
               <button
                 onClick={() => setActiveTab('COMPLETED')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                className={`shrink-0 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                   activeTab === 'COMPLETED'
                     ? 'bg-emerald-600 text-white shadow-2xs'
                     : 'text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-slate-800'

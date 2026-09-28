@@ -17,9 +17,17 @@ import {
   Users,
   Sparkles,
   Phone,
+  History,
+  Settings,
+  ChevronRight,
 } from 'lucide-react';
+import { AppPage } from '../components/layout/Sidebar';
 
-export const ProfilePage: React.FC = () => {
+interface ProfilePageProps {
+  onNavigate?: (page: AppPage) => void;
+}
+
+export const ProfilePage: React.FC<ProfilePageProps> = ({ onNavigate }) => {
   const { user, profile, updateUserProfile } = useAuth();
   const { streak, activities } = useData();
 
@@ -139,32 +147,79 @@ export const ProfilePage: React.FC = () => {
         </div>
 
         {/* 3 Metric Pills */}
-        <div className="grid grid-cols-3 gap-3 mt-6 pt-6 border-t border-blue-100 dark:border-slate-800">
-          <div className="text-center p-3 sm:p-4 rounded-xl bg-blue-50/70 hover:bg-blue-50 dark:bg-slate-900/60 border border-blue-200/80 dark:border-slate-800/80 shadow-xs transition-colors">
-            <div className="flex items-center justify-center gap-1 text-amber-600 dark:text-amber-400 text-xs font-bold mb-0.5">
-              <Flame className="w-3.5 h-3.5 fill-current" />
-              <span>Discipline Streak</span>
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-6 pt-6 border-t border-blue-100 dark:border-slate-800">
+          <div className="text-center p-2.5 sm:p-4 rounded-xl bg-blue-50/70 hover:bg-blue-50 dark:bg-slate-900/60 border border-blue-200/80 dark:border-slate-800/80 shadow-xs transition-colors">
+            <div className="flex items-center justify-center gap-1 text-amber-600 dark:text-amber-400 text-[10px] sm:text-xs font-bold mb-0.5 truncate">
+              <Flame className="w-3 sm:w-3.5 h-3 sm:h-3.5 fill-current shrink-0" />
+              <span><span className="hidden sm:inline">Discipline </span>Streak</span>
             </div>
-            <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{streak}d</div>
+            <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">{streak}d</div>
           </div>
 
-          <div className="text-center p-3 sm:p-4 rounded-xl bg-blue-50/70 hover:bg-blue-50 dark:bg-slate-900/60 border border-blue-200/80 dark:border-slate-800/80 shadow-xs transition-colors">
-            <div className="flex items-center justify-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-bold mb-0.5">
-              <CheckCircle2 className="w-3.5 h-3.5" />
+          <div className="text-center p-2.5 sm:p-4 rounded-xl bg-blue-50/70 hover:bg-blue-50 dark:bg-slate-900/60 border border-blue-200/80 dark:border-slate-800/80 shadow-xs transition-colors">
+            <div className="flex items-center justify-center gap-1 text-emerald-600 dark:text-emerald-400 text-[10px] sm:text-xs font-bold mb-0.5 truncate">
+              <CheckCircle2 className="w-3 sm:w-3.5 h-3 sm:h-3.5 shrink-0" />
               <span>Completed</span>
             </div>
-            <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{completedActivities}</div>
+            <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">{completedActivities}</div>
           </div>
 
-          <div className="text-center p-3 sm:p-4 rounded-xl bg-blue-50/70 hover:bg-blue-50 dark:bg-slate-900/60 border border-blue-200/80 dark:border-slate-800/80 shadow-xs transition-colors">
-            <div className="flex items-center justify-center gap-1 text-blue-600 dark:text-cyan-400 text-xs font-bold mb-0.5">
-              <Clock className="w-3.5 h-3.5" />
+          <div className="text-center p-2.5 sm:p-4 rounded-xl bg-blue-50/70 hover:bg-blue-50 dark:bg-slate-900/60 border border-blue-200/80 dark:border-slate-800/80 shadow-xs transition-colors">
+            <div className="flex items-center justify-center gap-1 text-blue-600 dark:text-cyan-400 text-[10px] sm:text-xs font-bold mb-0.5 truncate">
+              <Clock className="w-3 sm:w-3.5 h-3 sm:h-3.5 shrink-0" />
               <span>Focus Hours</span>
             </div>
-            <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">{totalFocusHours}h</div>
+            <div className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">{totalFocusHours}h</div>
           </div>
         </div>
       </div>
+
+      {/* Quick Navigation Cards */}
+      {onNavigate && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => onNavigate('history')}
+            className="flex items-center justify-between p-4 rounded-2xl bg-white/90 dark:bg-[#0b1220]/90 border border-blue-100/90 dark:border-slate-800/90 hover:border-blue-300 dark:hover:border-cyan-500/40 shadow-xs hover:shadow-md transition-all text-left group"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 dark:bg-slate-800 dark:text-cyan-400 border border-blue-200 dark:border-slate-700 shrink-0">
+                <History className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <span className="font-bold text-sm text-slate-900 dark:text-white block group-hover:text-blue-600 dark:group-hover:text-cyan-400 transition-colors truncate">
+                  Activity History
+                </span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate block">
+                  Audit check-ins, focus logs & CSV export
+                </span>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onNavigate('settings')}
+            className="flex items-center justify-between p-4 rounded-2xl bg-white/90 dark:bg-[#0b1220]/90 border border-blue-100/90 dark:border-slate-800/90 hover:border-blue-300 dark:hover:border-cyan-500/40 shadow-xs hover:shadow-md transition-all text-left group"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="p-2.5 rounded-xl bg-purple-50 text-purple-600 dark:bg-slate-800 dark:text-purple-400 border border-purple-200 dark:border-slate-700 shrink-0">
+                <Settings className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <span className="font-bold text-sm text-slate-900 dark:text-white block group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors truncate">
+                  App Settings
+                </span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate block">
+                  Password security, notifications & preferences
+                </span>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
+          </button>
+        </div>
+      )}
 
       {/* Edit Profile Form */}
       <div className="glass-card rounded-2xl p-6 sm:p-8 bg-white/95 dark:bg-[#0b1220]/95 backdrop-blur-md border border-blue-100/90 dark:border-slate-800/90 shadow-sm">

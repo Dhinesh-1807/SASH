@@ -120,10 +120,10 @@ export const ManageSchedulePage: React.FC = () => {
         </div>
 
         {/* Quick category filter pills */}
-        <div className="flex flex-wrap gap-1.5 pt-1">
+        <div className="flex items-center gap-1.5 pt-1 overflow-x-auto no-scrollbar pb-1">
           <button
             onClick={() => setSelectedCategory('ALL')}
-            className={`px-3 py-1 rounded-lg text-[11px] font-semibold transition-all ${
+            className={`shrink-0 px-3 py-1 rounded-lg text-[11px] font-semibold transition-all ${
               selectedCategory === 'ALL'
                 ? 'bg-blue-600 text-white shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-blue-50 dark:hover:bg-slate-800'
@@ -138,7 +138,7 @@ export const ManageSchedulePage: React.FC = () => {
               <button
                 key={c}
                 onClick={() => setSelectedCategory(c)}
-                className={`px-3 py-1 rounded-lg text-[11px] font-semibold border transition-all ${
+                className={`shrink-0 px-3 py-1 rounded-lg text-[11px] font-semibold border transition-all ${
                   isSelected
                     ? `${cat.bgClass} ${cat.textClass} ${cat.borderClass} ring-2 ring-blue-500/30 shadow-xs`
                     : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-blue-50/80 dark:hover:bg-slate-800/60'

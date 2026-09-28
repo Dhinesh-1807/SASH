@@ -39,7 +39,7 @@ export const Modal: React.FC<ModalProps> = ({
   }[maxWidth];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/70 backdrop-blur-md transition-opacity animate-fade-in"
@@ -48,29 +48,29 @@ export const Modal: React.FC<ModalProps> = ({
 
       {/* Modal Dialog */}
       <div
-        className={`relative w-full ${maxWidthClasses} bg-white dark:bg-[#0b1120] border border-blue-200/80 dark:border-cyan-500/20 rounded-2xl shadow-2xl shadow-blue-900/10 dark:shadow-blue-950/50 p-6 z-10 transition-all transform animate-fade-in text-slate-800 dark:text-slate-100`}
+        className={`relative w-full ${maxWidthClasses} max-h-[92vh] flex flex-col bg-white dark:bg-[#0b1120] border border-blue-200/80 dark:border-cyan-500/20 rounded-2xl shadow-2xl shadow-blue-900/10 dark:shadow-blue-950/50 p-4 sm:p-6 z-10 transition-all transform animate-fade-in text-slate-800 dark:text-slate-100 overflow-hidden`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between mb-3 shrink-0">
           <div>
             {title && (
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 {title}
               </h3>
             )}
             {description && (
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{description}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{description}</p>
             )}
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors"
+            className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-1 rounded-lg hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="mt-2">{children}</div>
+        <div className="mt-1 overflow-y-auto pr-1 flex-1">{children}</div>
       </div>
     </div>
   );

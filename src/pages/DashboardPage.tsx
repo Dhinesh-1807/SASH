@@ -140,7 +140,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigateManage }
       <CurrentFocusBanner onNavigateManage={onNavigateManage} />
 
       {/* Top KPI Cards Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         {/* Today's Completion */}
         <KpiCard
           title="Today's Completion"
@@ -286,10 +286,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigateManage }
 
         {/* Clean Filter Tabs Bar */}
         {hasTimelineItems && (
-          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-100/80 dark:bg-slate-900/80 rounded-xl border border-slate-200/80 dark:border-slate-800 w-fit">
+          <div className="flex items-center gap-1.5 p-1 bg-slate-100/80 dark:bg-slate-900/80 rounded-xl border border-slate-200/80 dark:border-slate-800 max-w-full overflow-x-auto no-scrollbar">
             <button
               onClick={() => setActiveFilter('ALL')}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+              className={`shrink-0 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                 activeFilter === 'ALL'
                   ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs'
                   : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
@@ -301,7 +301,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigateManage }
             {filterCounts.available > 0 && (
               <button
                 onClick={() => setActiveFilter('AVAILABLE')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                className={`shrink-0 px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                   activeFilter === 'AVAILABLE'
                     ? 'bg-blue-600 text-white shadow-2xs'
                     : 'text-blue-600 hover:text-blue-800 dark:text-cyan-400 dark:hover:text-cyan-300'
@@ -315,7 +315,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigateManage }
             {filterCounts.upcoming > 0 && (
               <button
                 onClick={() => setActiveFilter('UPCOMING')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                className={`shrink-0 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                   activeFilter === 'UPCOMING'
                     ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs'
                     : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
@@ -328,7 +328,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigateManage }
             {filterCounts.completed > 0 && (
               <button
                 onClick={() => setActiveFilter('COMPLETED')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                className={`shrink-0 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                   activeFilter === 'COMPLETED'
                     ? 'bg-emerald-600 text-white shadow-2xs'
                     : 'text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300'
@@ -341,7 +341,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onNavigateManage }
             {filterCounts.skipped > 0 && (
               <button
                 onClick={() => setActiveFilter('SKIPPED')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                className={`shrink-0 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                   activeFilter === 'SKIPPED'
                     ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-2xs'
                     : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
