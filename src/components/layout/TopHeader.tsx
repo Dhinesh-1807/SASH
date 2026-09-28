@@ -10,7 +10,7 @@ interface TopHeaderProps {
 }
 
 export const TopHeader: React.FC<TopHeaderProps> = ({ onOpenTimer }) => {
-  const { profile } = useAuth();
+  const { user, profile } = useAuth();
   const { streak } = useData();
   const { theme, setTheme } = useTheme();
 
@@ -76,6 +76,25 @@ export const TopHeader: React.FC<TopHeaderProps> = ({ onOpenTimer }) => {
         <div className="sm:hidden text-[11px] font-mono text-blue-600 dark:text-cyan-400 px-2 py-1 rounded-md bg-blue-50 dark:bg-slate-900 border border-blue-200 dark:border-slate-800">
           {formattedTime.replace(/:\d\d\s/, ' ')}
         </div>
+
+        {/* Cloud Sync / Demo Status Pill */}
+        {user?.isDemo ? (
+          <div
+            title="Running in Demo mode. Data is stored locally in this browser."
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-semibold"
+          >
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <span>Demo (Local)</span>
+          </div>
+        ) : (
+          <div
+            title="Connected to Supabase PostgreSQL Cloud. Real-time synced."
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span>Cloud Synced</span>
+          </div>
+        )}
 
         {/* Streak Pill */}
         <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs font-semibold">

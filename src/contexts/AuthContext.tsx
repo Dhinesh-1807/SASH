@@ -6,6 +6,7 @@ import { fetchProfile, updateProfile, extractNameFromEmail } from '../lib/storag
 export interface AuthUser {
   id: string;
   email: string;
+  isDemo?: boolean;
 }
 
 interface AuthContextType {
@@ -59,6 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const authUser: AuthUser = {
               id: session.user.id,
               email: session.user.email || '',
+              isDemo: false,
             };
             setUser(authUser);
             const prof = await fetchProfile(
@@ -80,10 +82,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const raw = localStorage.getItem(LOCAL_AUTH_SESSION_KEY);
         if (raw) {
           const parsed = JSON.parse(raw) as AuthUser;
-          if (parsed && parsed.id) {
+          // Only maintain session if explicitly marked as demo or if supabase client is offline
+          if (parsed && parsed.id && parsed.isDemo) {
             setUser(parsed);
             const prof = await fetchProfile(parsed.id, parsed.email);
             setProfile(prof);
+          } else {
+            // Unauthenticated in Supabase Cloud -> clear stale session so user can log in with a fresh token
+            localStorage.removeItem(LOCAL_AUTH_SESSION_KEY);
+            setUser(null);
+            setProfile(null);
           }
         }
       } catch (err) {
@@ -107,8 +115,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const authUser: AuthUser = {
             id: session.user.id,
             email: session.user.email || '',
+            isDemo: false,
           };
           setUser(authUser);
+          try {
+            localStorage.setItem(LOCAL_AUTH_SESSION_KEY, JSON.stringify(authUser));
+          } catch {}
           const prof = await fetchProfile(
             authUser.id,
             authUser.email,
@@ -116,6 +128,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           );
           setProfile(prof);
         } else if (event === 'SIGNED_OUT') {
+          try {
+            localStorage.removeItem(LOCAL_AUTH_SESSION_KEY);
+          } catch {}
           setUser(null);
           setProfile(null);
           setIsPasswordRecovery(false);
@@ -144,6 +159,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         if (error) {
+          if (
+            error.message?.toLowerCase().includes('disabled') ||
+            (error as { code?: string })?.code === 'email_provider_disabled'
+          ) {
+            return {
+              success: false,
+              error:
+                'Email logins are disabled in your Supabase project. Go to Supabase Dashboard > Authentication > Providers > Email, turn ON "Enable Email provider" and click Save.',
+            };
+          }
           return { success: false, error: error.message };
         }
 
@@ -151,6 +176,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const authUser: AuthUser = {
             id: data.user.id,
             email: data.user.email || cleanEmail,
+            isDemo: false,
           };
           setUser(authUser);
           try {
@@ -201,10 +227,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         if (error) {
+          if (
+            error.message?.toLowerCase().includes('disabled') ||
+            (error as { code?: string })?.code === 'email_provider_disabled'
+          ) {
+            return {
+              success: false,
+              error:
+                'Email signups are disabled in your Supabase project. Go to Supabase Dashboard > Authentication > Providers > Email, turn ON "Enable Email provider" and click Save.',
+            };
+          }
           if (error.message?.toLowerCase().includes('rate limit')) {
             return {
               success: false,
-              error: 'Supabase email rate limit exceeded (3 emails/hr). Please disable "Confirm email" in Supabase Dashboard (Authentication > Providers > Email) for instant zero-friction signups, or try again in a few minutes.'
+              error:
+                'Supabase email rate limit exceeded (3 emails/hr). Please disable "Confirm email" in Supabase Dashboard (Authentication > Providers > Email) for instant zero-friction signups, or try again in a few minutes.',
             };
           }
           return { success: false, error: error.message };
@@ -215,6 +252,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const authUser: AuthUser = {
               id: data.user.id,
               email: data.user.email || cleanEmail,
+              isDemo: false,
             };
             setUser(authUser);
             try {
@@ -254,6 +292,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const authUser: AuthUser = {
       id: demoUserId,
       email: cleanEmail,
+      isDemo: true,
     };
 
     setUser(authUser);
