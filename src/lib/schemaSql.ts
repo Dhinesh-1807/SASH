@@ -103,6 +103,8 @@ CREATE TABLE IF NOT EXISTS public.activities (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   schedule_id UUID REFERENCES public.schedules(id) ON DELETE SET NULL,
+  title TEXT,
+  category TEXT,
   activity_date DATE NOT NULL DEFAULT CURRENT_DATE,
   checkin_time TIMESTAMPTZ,
   completion_time TIMESTAMPTZ,
@@ -111,6 +113,10 @@ CREATE TABLE IF NOT EXISTS public.activities (
   notes TEXT DEFAULT '',
   created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
 );
+
+-- Ensure newly added columns exist on existing activities table
+ALTER TABLE public.activities ADD COLUMN IF NOT EXISTS title TEXT;
+ALTER TABLE public.activities ADD COLUMN IF NOT EXISTS category TEXT;
 
 -- -------------------------------------------------------------------------------------
 -- 4. REMINDERS TABLE (Milestones, tasks, exams, calendar syncing)

@@ -426,18 +426,82 @@ export async function fetchActivities(userId: string, dateLimitDays = 90): Promi
       sinceDate.setDate(sinceDate.getDate() - dateLimitDays);
       const sinceStr = sinceDate.toISOString().split('T')[0];
 
+      // Try PostgREST join with schedules
       const { data, error } = await supabase
         .from('activities')
-        .select('*')
+        .select('*, schedules(id, title, category)')
         .eq('user_id', userId)
         .gte('activity_date', sinceStr)
         .order('activity_date', { ascending: false });
 
-      if (!error && data) {
+      let actData = data;
+      if (error) {
+        // Fallback to simple select if foreign relation join fails
+        const fallback = await supabase
+          .from('activities')
+          .select('*')
+          .eq('user_id', userId)
+          .gte('activity_date', sinceStr)
+          .order('activity_date', { ascending: false });
+        actData = fallback.data;
+      }
+
+      if (actData) {
         const store = loadLocalStore(userId);
-        store.activities = data as ActivityRecord[];
+        const mappedActivities: ActivityRecord[] = (actData as any[]).map((row) => {
+          const scheduleInfo = row.schedules as { title?: string; category?: ScheduleCategory } | null;
+          const existingLocal = store.activities.find((a) => a.id === row.id);
+
+          // Extract category from schedule, row, local, or notes
+          let category: ScheduleCategory =
+            row.category ||
+            scheduleInfo?.category ||
+            existingLocal?.category ||
+            'Other';
+
+          if (category === 'Other' && row.notes && row.notes.startsWith('[')) {
+            const match = row.notes.match(/^\[(.*?)\]/);
+            if (match && match[1]) {
+              const parsed = match[1] === 'Learning' ? 'Study' : match[1];
+              category = parsed as ScheduleCategory;
+            }
+          }
+
+          // Extract title from schedule, row, local, or notes
+          let title: string =
+            row.title ||
+            scheduleInfo?.title ||
+            existingLocal?.title ||
+            'Focus Session';
+
+          if (title === 'Focus Session' && row.notes && row.notes.startsWith('[')) {
+            const match = row.notes.match(/^\[(.*?)\]\s*(.*)$/);
+            if (match && match[2] && match[2] !== 'Focus Timer Session') {
+              title = match[2];
+            } else if (match && match[1]) {
+              title = `${match[1]} Focus`;
+            }
+          }
+
+          return {
+            id: row.id,
+            user_id: row.user_id,
+            schedule_id: row.schedule_id,
+            activity_date: row.activity_date,
+            checkin_time: row.checkin_time,
+            completion_time: row.completion_time,
+            status: row.status,
+            duration_minutes: row.duration_minutes || 0,
+            notes: row.notes || '',
+            title,
+            category,
+            created_at: row.created_at,
+          };
+        });
+
+        store.activities = mappedActivities;
         saveLocalStore(userId, store);
-        return data as ActivityRecord[];
+        return mappedActivities;
       }
     } catch (err) {
       console.warn('Supabase fetchActivities fallback:', err);
@@ -494,9 +558,10 @@ export async function recordCheckIn(
 
       if (!error && data) {
         const store = loadLocalStore(userId);
-        store.activities = [data as ActivityRecord, ...store.activities.filter(a => a.id !== data.id)];
+        const fullRecord: ActivityRecord = { ...(data as ActivityRecord), title, category };
+        store.activities = [fullRecord, ...store.activities.filter(a => a.id !== data.id)];
         saveLocalStore(userId, store);
-        return { ...(data as ActivityRecord), title, category };
+        return fullRecord;
       }
     } catch (err) {
       console.warn('Supabase recordCheckIn fallback:', err);
@@ -535,9 +600,15 @@ export async function completeActivity(
 
       if (!error && data) {
         const store = loadLocalStore(userId);
-        store.activities = store.activities.map(a => a.id === activityId ? (data as ActivityRecord) : a);
+        const existing = store.activities.find(a => a.id === activityId);
+        const fullRecord: ActivityRecord = {
+          ...(data as ActivityRecord),
+          title: existing?.title,
+          category: existing?.category,
+        };
+        store.activities = store.activities.map(a => a.id === activityId ? fullRecord : a);
         saveLocalStore(userId, store);
-        return data as ActivityRecord;
+        return fullRecord;
       }
     } catch (err) {
       console.warn('Supabase completeActivity fallback:', err);
@@ -609,9 +680,10 @@ export async function skipActivity(
 
       if (!error && data) {
         const store = loadLocalStore(userId);
-        store.activities = [data as ActivityRecord, ...store.activities.filter(a => a.id !== data.id)];
+        const fullRecord: ActivityRecord = { ...(data as ActivityRecord), title, category };
+        store.activities = [fullRecord, ...store.activities.filter(a => a.id !== data.id)];
         saveLocalStore(userId, store);
-        return { ...(data as ActivityRecord), title, category };
+        return fullRecord;
       }
     } catch (err) {
       console.warn('Supabase skipActivity fallback:', err);
@@ -628,7 +700,9 @@ export async function skipActivity(
 export async function recordFocusSession(
   userId: string,
   minutes: number,
-  notes = 'Dedicated Focus Session'
+  notes = 'Dedicated Focus Session',
+  title = 'Focus Session',
+  category: ScheduleCategory = 'Development'
 ): Promise<ActivityRecord> {
   const todayStr = new Date().toISOString().split('T')[0];
   const nowIso = new Date().toISOString();
@@ -645,8 +719,8 @@ export async function recordFocusSession(
     status: 'Completed',
     duration_minutes: minutes,
     notes,
-    title: 'Focus Session',
-    category: 'Development',
+    title,
+    category,
     created_at: nowIso,
   };
 
@@ -671,9 +745,10 @@ export async function recordFocusSession(
 
       if (data) {
         const store = loadLocalStore(userId);
-        store.activities = [data as ActivityRecord, ...store.activities.filter(a => a.id !== data.id)];
+        const fullRecord: ActivityRecord = { ...(data as ActivityRecord), title, category };
+        store.activities = [fullRecord, ...store.activities.filter(a => a.id !== data.id)];
         saveLocalStore(userId, store);
-        return { ...(data as ActivityRecord), title: 'Focus Session', category: 'Development' };
+        return fullRecord;
       }
     } catch (err) {
       console.warn('Supabase recordFocusSession fallback:', err);

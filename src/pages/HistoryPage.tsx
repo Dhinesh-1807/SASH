@@ -7,7 +7,7 @@ import { ActivityTable } from '../components/history/ActivityTable';
 import { History, Download } from 'lucide-react';
 
 export const HistoryPage: React.FC = () => {
-  const { activities } = useData();
+  const { activities, schedules } = useData();
   const { user, profile } = useAuth();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,15 +18,25 @@ export const HistoryPage: React.FC = () => {
   // Filter and sort activities
   const filteredActivities = useMemo(() => {
     let result = activities.filter((act) => {
+      const matchedSchedule = act.schedule_id ? schedules.find((s) => s.id === act.schedule_id) : null;
+      const title =
+        act.title && act.title !== 'Focus Session'
+          ? act.title
+          : (matchedSchedule?.title || act.title || 'Focus Session');
+      const category =
+        act.category && act.category !== 'Other'
+          ? act.category
+          : (matchedSchedule?.category || act.category || 'Other');
+
       // Search
       const matchesSearch =
         !searchTerm ||
-        (act.title && act.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (act.notes && act.notes.toLowerCase().includes(searchTerm.toLowerCase()));
 
       // Category
       const matchesCategory =
-        selectedCategory === 'ALL' || (act.category && act.category === selectedCategory);
+        selectedCategory === 'ALL' || category === selectedCategory;
 
       // Status
       const matchesStatus =
@@ -47,27 +57,41 @@ export const HistoryPage: React.FC = () => {
         return (b.duration_minutes || 0) - (a.duration_minutes || 0);
       }
       if (sortBy === 'title') {
-        return (a.title || '').localeCompare(b.title || '');
+        const titleA = a.title || schedules.find(s => s.id === a.schedule_id)?.title || '';
+        const titleB = b.title || schedules.find(s => s.id === b.schedule_id)?.title || '';
+        return titleA.localeCompare(titleB);
       }
       return 0;
     });
 
     return result;
-  }, [activities, searchTerm, selectedCategory, selectedStatus, sortBy]);
+  }, [activities, schedules, searchTerm, selectedCategory, selectedStatus, sortBy]);
 
   // Export to CSV function
   const handleExportCsv = () => {
     const headers = ['Date', 'Activity', 'Category', 'CheckIn Time', 'Completion Time', 'Duration (Minutes)', 'Status', 'Notes'];
-    const rows = activities.map((a) => [
-      `"${a.activity_date}"`,
-      `"${(a.title || 'Focus Session').replace(/"/g, '""')}"`,
-      `"${a.category || 'General'}"`,
-      `"${a.checkin_time || ''}"`,
-      `"${a.completion_time || ''}"`,
-      a.duration_minutes || 0,
-      `"${a.status}"`,
-      `"${(a.notes || '').replace(/"/g, '""')}"`,
-    ]);
+    const rows = activities.map((a) => {
+      const matchedSchedule = a.schedule_id ? schedules.find((s) => s.id === a.schedule_id) : null;
+      const title =
+        a.title && a.title !== 'Focus Session'
+          ? a.title
+          : (matchedSchedule?.title || a.title || 'Focus Session');
+      const category =
+        a.category && a.category !== 'Other'
+          ? a.category
+          : (matchedSchedule?.category || a.category || 'General');
+
+      return [
+        `"${a.activity_date}"`,
+        `"${title.replace(/"/g, '""')}"`,
+        `"${category}"`,
+        `"${a.checkin_time || ''}"`,
+        `"${a.completion_time || ''}"`,
+        a.duration_minutes || 0,
+        `"${a.status}"`,
+        `"${(a.notes || '').replace(/"/g, '""')}"`,
+      ];
+    });
 
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
     const encodedUri = encodeURI(csvContent);

@@ -50,7 +50,7 @@ interface DataContextType {
   checkIn: (schedule: ScheduleItem) => Promise<ActivityRecord>;
   completeCurrentActivity: (activityId: string, durationMinutes: number, notes?: string) => Promise<ActivityRecord>;
   skipCurrentSchedule: (schedule: ScheduleItem, notes?: string) => Promise<ActivityRecord>;
-  logFocusSession: (minutes: number, notes?: string) => Promise<ActivityRecord>;
+  logFocusSession: (minutes: number, notes?: string, title?: string, category?: ScheduleCategory) => Promise<ActivityRecord>;
   refreshAllData: () => Promise<void>;
 }
 
@@ -86,8 +86,49 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         fetchSchedules(user.id),
         fetchActivities(user.id, 90),
       ]);
+
+      const enrichedActivities = actList.map((act) => {
+        const matchedSchedule = act.schedule_id
+          ? schList.find((s) => s.id === act.schedule_id)
+          : null;
+
+        let title = act.title;
+        let category = act.category;
+
+        if (!title || title === 'Focus Session') {
+          if (matchedSchedule?.title) {
+            title = matchedSchedule.title;
+          } else if (act.notes && act.notes.startsWith('[')) {
+            const match = act.notes.match(/^\[(.*?)\]\s*(.*)$/);
+            if (match && match[2] && match[2] !== 'Focus Timer Session') {
+              title = match[2];
+            } else if (match && match[1]) {
+              title = `${match[1]} Focus`;
+            }
+          }
+        }
+
+        if (!category || category === 'Other') {
+          if (matchedSchedule?.category) {
+            category = matchedSchedule.category;
+          } else if (act.notes && act.notes.startsWith('[')) {
+            const match = act.notes.match(/^\[(.*?)\]/);
+            if (match && match[1]) {
+              const parsed = match[1] === 'Learning' ? 'Study' : match[1];
+              category = parsed as ScheduleCategory;
+            }
+          }
+        }
+
+        return {
+          ...act,
+          title: title || 'Focus Session',
+          category: category || 'Development',
+        };
+      });
+
       setSchedules(schList);
-      setActivities(actList);
+      setActivities(enrichedActivities);
     } catch (err) {
       console.error('Failed to load user schedules/activities:', err);
     } finally {
@@ -401,7 +442,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     const updated = await completeActivity(user.id, activityId, durationMinutes, notes);
-    setActivities((prev) => prev.map((a) => (a.id === activityId ? updated : a)));
+    setActivities((prev) =>
+      prev.map((a) => {
+        if (a.id === activityId) {
+          return {
+            ...updated,
+            title: updated.title || a.title,
+            category: updated.category || a.category,
+          };
+        }
+        return a;
+      })
+    );
     return updated;
   };
 
@@ -412,7 +464,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return record;
   };
 
-  const logFocusSession = async (minutes: number, notes = 'Dedicated Focus Session'): Promise<ActivityRecord> => {
+  const logFocusSession = async (
+    minutes: number,
+    notes = 'Dedicated Focus Session',
+    title = 'Focus Session',
+    category: ScheduleCategory = 'Development'
+  ): Promise<ActivityRecord> => {
     if (!user) throw new Error('Not authenticated');
     sounds.playTimerChime();
 
@@ -427,7 +484,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Ignore
     }
 
-    const record = await recordFocusSession(user.id, minutes, notes);
+    const record = await recordFocusSession(user.id, minutes, notes, title, category);
     setActivities((prev) => [record, ...prev]);
     return record;
   };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Modal } from '../common/Modal';
 import { useData } from '../../contexts/DataContext';
+import { ScheduleCategory } from '../../types';
 import { sounds } from '../../lib/audio';
 import confetti from 'canvas-confetti';
 import {
@@ -147,10 +148,12 @@ export const FocusTimerModal: React.FC<FocusTimerModalProps> = ({ isOpen, onClos
 
       if (mode === 'focus') {
         const minutesFinished = Math.max(1, Math.round(totalSeconds / 60));
+        const catKey = (selectedCategory === 'Learning' ? 'Study' : selectedCategory) as ScheduleCategory;
+        const displayTitle = sessionNotes.trim() ? sessionNotes.trim() : `${selectedCategory} Focus`;
         const note = sessionNotes.trim()
           ? `[${selectedCategory}] ${sessionNotes.trim()}`
           : `[${selectedCategory}] Focus Timer Session`;
-        logFocusSession(minutesFinished, note);
+        logFocusSession(minutesFinished, note, displayTitle, catKey);
       }
     }
   }, [isFinished]);

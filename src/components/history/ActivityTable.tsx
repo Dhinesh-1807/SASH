@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ActivityRecord } from '../../types';
 import { CATEGORY_CONFIG } from '../../lib/constants';
+import { useData } from '../../contexts/DataContext';
 import { formatTime12h } from '../dashboard/CurrentFocusBanner';
 import {
   Calendar,
@@ -17,6 +18,7 @@ interface ActivityTableProps {
 }
 
 export const ActivityTable: React.FC<ActivityTableProps> = ({ activities }) => {
+  const { schedules } = useData();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -78,14 +80,26 @@ export const ActivityTable: React.FC<ActivityTableProps> = ({ activities }) => {
           </thead>
           <tbody className="divide-y divide-blue-100 dark:divide-slate-800/60">
             {visibleActivities.map((act) => {
-              const cat = CATEGORY_CONFIG[act.category || 'Other'] || CATEGORY_CONFIG.Other;
+              const matchedSchedule = act.schedule_id
+                ? schedules.find((s) => s.id === act.schedule_id)
+                : null;
+              const displayTitle =
+                act.title && act.title !== 'Focus Session'
+                  ? act.title
+                  : (matchedSchedule?.title || act.title || 'Focus Session');
+              const displayCategory =
+                act.category && act.category !== 'Other'
+                  ? act.category
+                  : (matchedSchedule?.category || act.category || 'Other');
+              const cat = CATEGORY_CONFIG[displayCategory] || CATEGORY_CONFIG.Other;
+
               return (
                 <tr key={act.id} className="hover:bg-blue-50/50 dark:hover:bg-slate-800/30 transition-colors">
                   <td className="py-3.5 px-4 font-mono text-slate-600 dark:text-slate-300 whitespace-nowrap">
                     {formatActivityDate(act.activity_date)}
                   </td>
                   <td className="py-3.5 px-4">
-                    <div className="font-semibold text-slate-900 dark:text-white">{act.title || 'Focus Session'}</div>
+                    <div className="font-semibold text-slate-900 dark:text-white">{displayTitle}</div>
                     {act.notes && (
                       <div className="text-[11px] text-slate-500 dark:text-slate-400 italic line-clamp-1 mt-0.5">
                         "{act.notes}"
@@ -131,7 +145,19 @@ export const ActivityTable: React.FC<ActivityTableProps> = ({ activities }) => {
       {/* Mobile Card List View */}
       <div className="md:hidden space-y-3">
         {visibleActivities.map((act) => {
-          const cat = CATEGORY_CONFIG[act.category || 'Other'] || CATEGORY_CONFIG.Other;
+          const matchedSchedule = act.schedule_id
+            ? schedules.find((s) => s.id === act.schedule_id)
+            : null;
+          const displayTitle =
+            act.title && act.title !== 'Focus Session'
+              ? act.title
+              : (matchedSchedule?.title || act.title || 'Focus Session');
+          const displayCategory =
+            act.category && act.category !== 'Other'
+              ? act.category
+              : (matchedSchedule?.category || act.category || 'Other');
+          const cat = CATEGORY_CONFIG[displayCategory] || CATEGORY_CONFIG.Other;
+
           return (
             <div key={act.id} className="glass-card rounded-xl p-3.5 space-y-2 text-xs">
               <div className="flex items-center justify-between">
@@ -152,7 +178,7 @@ export const ActivityTable: React.FC<ActivityTableProps> = ({ activities }) => {
               </div>
 
               <div className="font-semibold text-slate-900 dark:text-white text-sm">
-                {act.title || 'Focus Session'}
+                {displayTitle}
               </div>
 
               <div className="flex items-center justify-between pt-1 border-t border-blue-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400">
