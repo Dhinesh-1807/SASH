@@ -3,6 +3,9 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 const STORAGE_KEY_URL = 'ds_focus_supabase_url';
 const STORAGE_KEY_ANON = 'ds_focus_supabase_anon_key';
 
+const DEFAULT_SUPABASE_URL = 'https://aqrghnxmorhaumjgpzjk.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_YtbktvivP5rPuxSuHww2Yw_lyK4MXTz';
+
 export function getSupabaseCredentials() {
   const envUrl = import.meta.env.VITE_SUPABASE_URL;
   const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -10,8 +13,8 @@ export function getSupabaseCredentials() {
   const storedUrl = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY_URL) : null;
   const storedKey = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY_ANON) : null;
 
-  const url = storedUrl || envUrl || '';
-  const key = storedKey || envKey || '';
+  const url = storedUrl || envUrl || DEFAULT_SUPABASE_URL;
+  const key = storedKey || envKey || DEFAULT_SUPABASE_ANON_KEY;
 
   return {
     url: url.trim(),
