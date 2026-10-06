@@ -12,6 +12,7 @@ import {
   Play,
   Calendar,
   Compass,
+  Square,
 } from 'lucide-react';
 
 interface CurrentFocusBannerProps {
@@ -31,6 +32,7 @@ export const CurrentFocusBanner: React.FC<CurrentFocusBannerProps> = ({
     activeActivity,
     activeElapsedTimeSeconds,
     checkIn,
+    completeCurrentActivity,
   } = useData();
 
   const formatElapsed = (sec: number) => {
@@ -164,7 +166,7 @@ export const CurrentFocusBanner: React.FC<CurrentFocusBannerProps> = ({
             {/* Right Action Column */}
             <div className="lg:col-span-4 flex flex-col items-stretch lg:items-end justify-center gap-3 pt-3 lg:pt-0 lg:border-l border-blue-200/70 dark:border-slate-800/80 lg:pl-6">
               {activeActivity ? (
-                <div className="w-full bg-white/95 dark:bg-slate-900/90 border border-blue-300 dark:border-cyan-500/40 rounded-xl p-3.5 text-center lg:text-right shadow-xs">
+                <div className="w-full bg-white/95 dark:bg-slate-900/90 border border-blue-300 dark:border-cyan-500/40 rounded-xl p-3.5 text-center lg:text-right shadow-xs space-y-2">
                   <div className="text-[10px] text-blue-600 dark:text-cyan-400 uppercase tracking-widest font-bold flex items-center justify-center lg:justify-end gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
                     <span>Focus Session In Progress</span>
@@ -175,6 +177,19 @@ export const CurrentFocusBanner: React.FC<CurrentFocusBannerProps> = ({
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
                     Live timer tracking your focus
                   </p>
+                  <button
+                    onClick={async () => {
+                      if (activeActivity) {
+                        const elapsedMins = Math.max(1, Math.round(activeElapsedTimeSeconds / 60));
+                        await completeCurrentActivity(activeActivity.id, elapsedMins, 'Completed via Focus Banner');
+                      }
+                    }}
+                    className="w-full py-2 px-3 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center gap-1.5 transition-all shadow-xs transform active:scale-95 cursor-pointer"
+                    title="Stop focus session and store in Activity History"
+                  >
+                    <Square className="w-3.5 h-3.5 fill-current" />
+                    <span>Stop & Save Session</span>
+                  </button>
                 </div>
               ) : (
                 <button

@@ -83,14 +83,28 @@ export const ActivityTable: React.FC<ActivityTableProps> = ({ activities }) => {
               const matchedSchedule = act.schedule_id
                 ? schedules.find((s) => s.id === act.schedule_id)
                 : null;
+              const cleanNoteTitle = act.notes
+                ? act.notes.replace(/^\[(.*?)\]\s*/, '').replace(/\s*\(\d+m\s+logged\)$/, '').trim()
+                : '';
               const displayTitle =
                 act.title && act.title !== 'Focus Session'
                   ? act.title
-                  : (matchedSchedule?.title || act.title || 'Focus Session');
+                  : (matchedSchedule?.title || cleanNoteTitle || act.title || 'Focus Session');
+
+              let extractedCategory = act.category;
+              if ((!extractedCategory || extractedCategory === 'Other') && act.notes) {
+                const bracketMatch = act.notes.match(/^\[(.*?)\]/);
+                if (bracketMatch && bracketMatch[1]) {
+                  const raw = bracketMatch[1];
+                  if (raw === 'Development' || raw === 'Learning' || raw === 'Study' || raw === 'Placement' || raw === 'Health' || raw === 'General') {
+                    extractedCategory = (raw === 'Learning' ? 'Study' : raw) as any;
+                  }
+                }
+              }
               const displayCategory =
-                act.category && act.category !== 'Other'
-                  ? act.category
-                  : (matchedSchedule?.category || act.category || 'Other');
+                extractedCategory && extractedCategory !== 'Other'
+                  ? extractedCategory
+                  : (matchedSchedule?.category || extractedCategory || 'Other');
               const cat = CATEGORY_CONFIG[displayCategory] || CATEGORY_CONFIG.Other;
 
               return (
@@ -148,14 +162,28 @@ export const ActivityTable: React.FC<ActivityTableProps> = ({ activities }) => {
           const matchedSchedule = act.schedule_id
             ? schedules.find((s) => s.id === act.schedule_id)
             : null;
+          const cleanNoteTitle = act.notes
+            ? act.notes.replace(/^\[(.*?)\]\s*/, '').replace(/\s*\(\d+m\s+logged\)$/, '').trim()
+            : '';
           const displayTitle =
             act.title && act.title !== 'Focus Session'
               ? act.title
-              : (matchedSchedule?.title || act.title || 'Focus Session');
+              : (matchedSchedule?.title || cleanNoteTitle || act.title || 'Focus Session');
+
+          let extractedCategory = act.category;
+          if ((!extractedCategory || extractedCategory === 'Other') && act.notes) {
+            const bracketMatch = act.notes.match(/^\[(.*?)\]/);
+            if (bracketMatch && bracketMatch[1]) {
+              const raw = bracketMatch[1];
+              if (raw === 'Development' || raw === 'Learning' || raw === 'Study' || raw === 'Placement' || raw === 'Health' || raw === 'General') {
+                extractedCategory = (raw === 'Learning' ? 'Study' : raw) as any;
+              }
+            }
+          }
           const displayCategory =
-            act.category && act.category !== 'Other'
-              ? act.category
-              : (matchedSchedule?.category || act.category || 'Other');
+            extractedCategory && extractedCategory !== 'Other'
+              ? extractedCategory
+              : (matchedSchedule?.category || extractedCategory || 'Other');
           const cat = CATEGORY_CONFIG[displayCategory] || CATEGORY_CONFIG.Other;
 
           return (

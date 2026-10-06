@@ -19,14 +19,28 @@ export const HistoryPage: React.FC = () => {
   const filteredActivities = useMemo(() => {
     let result = activities.filter((act) => {
       const matchedSchedule = act.schedule_id ? schedules.find((s) => s.id === act.schedule_id) : null;
+      const cleanNoteTitle = act.notes
+        ? act.notes.replace(/^\[(.*?)\]\s*/, '').replace(/\s*\(\d+m\s+logged\)$/, '').trim()
+        : '';
       const title =
         act.title && act.title !== 'Focus Session'
           ? act.title
-          : (matchedSchedule?.title || act.title || 'Focus Session');
+          : (matchedSchedule?.title || cleanNoteTitle || act.title || 'Focus Session');
+
+      let extractedCategory = act.category;
+      if ((!extractedCategory || extractedCategory === 'Other') && act.notes) {
+        const bracketMatch = act.notes.match(/^\[(.*?)\]/);
+        if (bracketMatch && bracketMatch[1]) {
+          const raw = bracketMatch[1];
+          if (raw === 'Development' || raw === 'Learning' || raw === 'Study' || raw === 'Placement' || raw === 'Health' || raw === 'General') {
+            extractedCategory = (raw === 'Learning' ? 'Study' : raw) as any;
+          }
+        }
+      }
       const category =
-        act.category && act.category !== 'Other'
-          ? act.category
-          : (matchedSchedule?.category || act.category || 'Other');
+        extractedCategory && extractedCategory !== 'Other'
+          ? extractedCategory
+          : (matchedSchedule?.category || extractedCategory || 'Other');
 
       // Search
       const matchesSearch =
@@ -72,14 +86,28 @@ export const HistoryPage: React.FC = () => {
     const headers = ['Date', 'Activity', 'Category', 'CheckIn Time', 'Completion Time', 'Duration (Minutes)', 'Status', 'Notes'];
     const rows = activities.map((a) => {
       const matchedSchedule = a.schedule_id ? schedules.find((s) => s.id === a.schedule_id) : null;
+      const cleanNoteTitle = a.notes
+        ? a.notes.replace(/^\[(.*?)\]\s*/, '').replace(/\s*\(\d+m\s+logged\)$/, '').trim()
+        : '';
       const title =
         a.title && a.title !== 'Focus Session'
           ? a.title
-          : (matchedSchedule?.title || a.title || 'Focus Session');
+          : (matchedSchedule?.title || cleanNoteTitle || a.title || 'Focus Session');
+
+      let extractedCategory = a.category;
+      if ((!extractedCategory || extractedCategory === 'Other') && a.notes) {
+        const bracketMatch = a.notes.match(/^\[(.*?)\]/);
+        if (bracketMatch && bracketMatch[1]) {
+          const raw = bracketMatch[1];
+          if (raw === 'Development' || raw === 'Learning' || raw === 'Study' || raw === 'Placement' || raw === 'Health' || raw === 'General') {
+            extractedCategory = (raw === 'Learning' ? 'Study' : raw) as any;
+          }
+        }
+      }
       const category =
-        a.category && a.category !== 'Other'
-          ? a.category
-          : (matchedSchedule?.category || a.category || 'General');
+        extractedCategory && extractedCategory !== 'Other'
+          ? extractedCategory
+          : (matchedSchedule?.category || extractedCategory || 'General');
 
       return [
         `"${a.activity_date}"`,

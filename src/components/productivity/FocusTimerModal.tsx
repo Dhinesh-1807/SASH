@@ -21,6 +21,7 @@ import {
   Briefcase,
   Check,
   Flame,
+  Square,
 } from 'lucide-react';
 
 interface FocusTimerModalProps {
@@ -52,6 +53,12 @@ export const FocusTimerModal: React.FC<FocusTimerModalProps> = ({ isOpen, onClos
   const [remainingSeconds, setRemainingSeconds] = useState(25 * 60);
   const [totalSeconds, setTotalSeconds] = useState(25 * 60);
   const [isFinished, setIsFinished] = useState(false);
+  const [stoppedSession, setStoppedSession] = useState<{
+    minutes: number;
+    title: string;
+    category: string;
+  } | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -59,6 +66,7 @@ export const FocusTimerModal: React.FC<FocusTimerModalProps> = ({ isOpen, onClos
   const applyPreset = (newMode: SessionMode, preset: FocusPreset, customMins = customMinutes) => {
     setIsRunning(false);
     setIsFinished(false);
+    setStoppedSession(null);
 
     let mins = 25;
     if (newMode === 'short_break') {
@@ -161,7 +169,67 @@ export const FocusTimerModal: React.FC<FocusTimerModalProps> = ({ isOpen, onClos
   const handleReset = () => {
     setIsRunning(false);
     setIsFinished(false);
+    setStoppedSession(null);
     setRemainingSeconds(totalSeconds);
+  };
+
+  const elapsedSeconds = Math.max(0, totalSeconds - remainingSeconds);
+  const canStop = isRunning || elapsedSeconds > 0;
+
+  const handleStop = async () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    setIsRunning(false);
+
+    if (mode === 'focus') {
+      const elapsed = Math.max(0, totalSeconds - remainingSeconds);
+
+      // If user focused for at least 10 seconds, store in Activity History
+      if (elapsed >= 10) {
+        setIsSaving(true);
+        const minutesLogged = Math.max(1, Math.round(elapsed / 60));
+        const catKey = (selectedCategory === 'Learning' ? 'Study' : selectedCategory) as ScheduleCategory;
+        const displayTitle = sessionNotes.trim() ? sessionNotes.trim() : `${selectedCategory} Focus`;
+        const note = sessionNotes.trim()
+          ? `[${selectedCategory}] ${sessionNotes.trim()}`
+          : `[${selectedCategory}] Focus Session (${minutesLogged}m logged)`;
+
+        if (soundEnabled) {
+          sounds.playTimerChime();
+        }
+
+        try {
+          confetti({
+            particleCount: 65,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#0284C7', '#38BDF8', '#10B981', '#6366F1'],
+          });
+        } catch {
+          // Fallback
+        }
+
+        try {
+          await logFocusSession(minutesLogged, note, displayTitle, catKey);
+          setStoppedSession({
+            minutes: minutesLogged,
+            title: displayTitle,
+            category: selectedCategory,
+          });
+        } catch (err) {
+          console.error('Failed to log stopped focus session:', err);
+        } finally {
+          setIsSaving(false);
+        }
+      } else {
+        // Less than 10 seconds: reset without logging
+        setRemainingSeconds(totalSeconds);
+      }
+    } else {
+      // In break mode, stopping ends the break timer and resets
+      setRemainingSeconds(totalSeconds);
+    }
   };
 
   const mins = Math.floor(remainingSeconds / 60);
@@ -317,7 +385,7 @@ export const FocusTimerModal: React.FC<FocusTimerModalProps> = ({ isOpen, onClos
             {/* Live Status indicator */}
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider mb-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
               {isRunning && <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />}
-              <span>{isFinished ? 'Finished' : isRunning ? 'In Progress' : 'Ready'}</span>
+              <span>{stoppedSession ? 'Stopped & Saved' : isFinished ? 'Finished' : isRunning ? 'In Progress' : 'Ready'}</span>
             </div>
 
             {/* Time MM:SS */}
@@ -326,13 +394,19 @@ export const FocusTimerModal: React.FC<FocusTimerModalProps> = ({ isOpen, onClos
             </span>
 
             <span className="text-[11px] font-semibold text-blue-600 dark:text-cyan-400 uppercase tracking-widest mt-1">
-              {mode === 'focus' ? `${selectedCategory} Focus` : mode === 'short_break' ? 'Short Break' : 'Rest Break'}
+              {stoppedSession
+                ? `${stoppedSession.minutes}m Logged to History`
+                : mode === 'focus'
+                ? `${selectedCategory} Focus`
+                : mode === 'short_break'
+                ? 'Short Break'
+                : 'Rest Break'}
             </span>
           </div>
         </div>
 
         {/* Quick Booster Buttons (-5m and +5m) */}
-        {!isFinished && (
+        {!isFinished && !stoppedSession && (
           <div className="flex items-center justify-center gap-3">
             <button
               type="button"
@@ -362,7 +436,7 @@ export const FocusTimerModal: React.FC<FocusTimerModalProps> = ({ isOpen, onClos
         )}
 
         {/* Category & Objective Inputs (Focus Mode Only) */}
-        {mode === 'focus' && !isFinished && (
+        {mode === 'focus' && !isFinished && !stoppedSession && (
           <div className="space-y-2 max-w-sm mx-auto">
             {/* Category chips */}
             <div className="flex items-center justify-center gap-1.5">
@@ -399,7 +473,7 @@ export const FocusTimerModal: React.FC<FocusTimerModalProps> = ({ isOpen, onClos
         )}
 
         {/* Bottom Controls Row */}
-        <div className="flex items-center justify-center gap-3 pt-2">
+        <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 pt-2">
           {/* Sound Toggle */}
           <button
             type="button"
@@ -424,25 +498,80 @@ export const FocusTimerModal: React.FC<FocusTimerModalProps> = ({ isOpen, onClos
             <RotateCcw className="w-4 h-4" />
           </button>
 
-          {/* Primary Action Button (Play / Pause / Finished) */}
-          {isFinished ? (
+          {/* Stop Button (Ends focus session early and saves to Activity History) */}
+          {!isFinished && !stoppedSession && (
             <button
               type="button"
-              onClick={() => {
-                setIsFinished(false);
-                applyPreset('short_break', 15);
-                setMode('short_break');
-              }}
-              className="px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white shadow-md shadow-emerald-500/25 transition-all transform active:scale-95 flex items-center gap-2"
+              onClick={handleStop}
+              disabled={!canStop || isSaving}
+              className={`px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm border transition-all flex items-center justify-center gap-1.5 ${
+                canStop && !isSaving
+                  ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 dark:text-rose-300 dark:border-rose-800/60 shadow-2xs active:scale-95 cursor-pointer'
+                  : 'opacity-40 cursor-not-allowed bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700'
+              }`}
+              title={
+                canStop
+                  ? mode === 'focus'
+                    ? 'Stop focus session and store in Activity History'
+                    : 'Stop break timer'
+                  : 'Timer not started yet'
+              }
             >
-              <Coffee className="w-4 h-4" />
-              <span>Take a Break</span>
+              <Square className="w-3.5 h-3.5 fill-current" />
+              <span>{isSaving ? 'Saving...' : 'Stop'}</span>
             </button>
+          )}
+
+          {/* Primary Action Button (Play / Pause / Take a Break / New Session) */}
+          {stoppedSession ? (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-all active:scale-95"
+              >
+                New Session
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setStoppedSession(null);
+                  applyPreset('short_break', 15);
+                  setMode('short_break');
+                }}
+                className="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white shadow-md shadow-emerald-500/25 transition-all transform active:scale-95 flex items-center gap-1.5"
+              >
+                <Coffee className="w-4 h-4" />
+                <span>Take a Break</span>
+              </button>
+            </div>
+          ) : isFinished ? (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleReset}
+                className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-all active:scale-95"
+              >
+                New Session
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsFinished(false);
+                  applyPreset('short_break', 15);
+                  setMode('short_break');
+                }}
+                className="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white shadow-md shadow-emerald-500/25 transition-all transform active:scale-95 flex items-center gap-2"
+              >
+                <Coffee className="w-4 h-4" />
+                <span>Take a Break</span>
+              </button>
+            </div>
           ) : (
             <button
               type="button"
               onClick={() => setIsRunning(!isRunning)}
-              className={`px-8 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white shadow-md transition-all transform active:scale-95 flex items-center gap-2 ${
+              className={`px-6 sm:px-8 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white shadow-md transition-all transform active:scale-95 flex items-center gap-2 ${
                 isRunning
                   ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/25'
                   : 'bg-gradient-to-r from-blue-600 via-blue-700 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 shadow-blue-500/25'
@@ -462,6 +591,16 @@ export const FocusTimerModal: React.FC<FocusTimerModalProps> = ({ isOpen, onClos
             </button>
           )}
         </div>
+
+        {/* Stopped notification card */}
+        {stoppedSession && (
+          <div className="p-3.5 bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl text-xs flex items-center justify-center gap-2 animate-fade-in shadow-2xs">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span className="font-semibold">
+              Focus session stopped! <strong>{stoppedSession.minutes} min</strong> ({stoppedSession.title}) stored in Activity History.
+            </span>
+          </div>
+        )}
 
         {/* Finished notification card */}
         {isFinished && (
